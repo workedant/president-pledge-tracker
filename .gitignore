@@ -1,0 +1,12 @@
+# 비공개: 원본·전문 데이터와 내부 문서는 저장소에 올리지 않음
+raw/
+site/
+docs/
+*.bak_*
+x_jaemyung_lee_*.json
+scripts/
+wiki/
+public/
+data/
+index.html
+pages/
