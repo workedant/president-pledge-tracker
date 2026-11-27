@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="이재명 대통령의 X 게시물 요약, 언론 맥락, 10대 공약·123대 국정과제 이행 현황을 최신순으로 쌓는 기록부">
+<title>대통령 공약·SNS 기록부</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 관보형 단일 컬럼 — 상단 요약 → 월별 막대 → 탭(타임라인 / 공약 트래커 / 국정과제) */
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --ink:#18212e; --muted:#5c6878; --line:#dde2e9;
+  --accent:#1f4fa3; --accent-soft:#e3ebf8; --seal:#b4372b; --warn:#a86500; --warn-soft:#fbefd9;
+  --ok:#1f7a4d; --ok-soft:#dcf1e5; --news:#6b4fa0; --news-soft:#ece6f6;
+  --f-display:"Nanum Myeongjo","Batang",serif; --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10151d; --surface:#171e29; --ink:#e6eaf0; --muted:#98a3b3; --line:#2a3443;
+  --accent:#7ea6ec; --accent-soft:#1d2b45; --seal:#e0796d; --warn:#e3a94a; --warn-soft:#3a2c14;
+  --ok:#5cc690; --ok-soft:#163327; --news:#b9a1e6; --news-soft:#2a2240; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10151d; --surface:#171e29; --ink:#e6eaf0; --muted:#98a3b3; --line:#2a3443;
+  --accent:#7ea6ec; --accent-soft:#1d2b45; --seal:#e0796d; --warn:#e3a94a; --warn-soft:#3a2c14;
+  --ok:#5cc690; --ok-soft:#163327; --news:#b9a1e6; --news-soft:#2a2240; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+.body.clamp{display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical;overflow:hidden}
+.expand{font:inherit;font-size:12px;background:none;border:0;color:var(--accent);padding:0;cursor:pointer;justify-self:start}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.65;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:980px;margin:0 auto;padding-block:28px 64px;display:grid;gap:28px}
+a{color:var(--accent)}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.3}
+h1{font-size:clamp(26px,4.4vw,38px);font-weight:800}
+h2{font-size:22px}
+.eyebrow{font-size:12px;letter-spacing:.12em;color:var(--seal);font-weight:600}
+.lede{color:var(--muted);max-width:65ch;margin:8px 0 0}
+.meta-line{font-family:var(--f-mono);font-size:12px;color:var(--muted);margin-top:10px}
+header.top{display:grid;gap:4px;border-bottom:2px solid var(--ink);padding-bottom:20px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.stat{background:var(--surface);padding:14px 16px;display:grid;gap:2px}
+.stat b{font-family:var(--f-mono);font-size:24px;font-weight:500;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+@media (max-width:640px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+section.panel{background:var(--surface);border:1px solid var(--line);padding:18px 18px 14px;display:grid;gap:10px;min-width:0}
+.panel-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;margin-right:5px;vertical-align:-1px}
+.chart{overflow-x:auto}
+.chart svg{display:block;min-width:620px;width:100%;height:auto}
+.chart text{fill:var(--muted);font-family:var(--f-mono);font-size:10px}
+.chart .bar{fill:var(--accent)} .chart .bar.on{fill:var(--seal)}
+.chart .hit{fill:transparent;cursor:pointer;outline:none}
+.chart .hit:focus-visible{stroke:var(--accent);stroke-width:2}
+.m-mark,.month{scroll-margin-top:60px}
+.m-mark.flash span,.month.flash>summary h3{animation:mflash 1.6s ease-out}
+@keyframes mflash{0%,40%{background:var(--seal);color:#fff}100%{}}
+.chart .press{fill:none;stroke:var(--seal);stroke-width:1.5}
+.chart .grid{stroke:var(--line)}
+.chart .avg{stroke:var(--seal);stroke-width:1.5;stroke-dasharray:5 4}
+.chart text.avg-t{fill:var(--seal);font-weight:500}
+.note{font-size:12px;color:var(--muted)}
+nav.tabs{display:flex;gap:0;border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5;overflow-x:auto}
+nav.tabs button{font:inherit;font-weight:600;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:10px 14px;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--seal)}
+nav.tabs button:focus-visible,.chip:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.filters{display:grid;gap:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:4px 11px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+input[type=search],select{font:inherit;font-size:14px;padding:7px 10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-width:0}
+input[type=search]{flex:1 1 220px}
+.count{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.month{display:grid;gap:0}
+.month>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:baseline;padding:14px 0 8px;border-bottom:1px solid var(--ink)}
+.month>summary::-webkit-details-marker{display:none}
+.month>summary h3{font-size:20px}
+.month>summary .count::after{content:" ▾"}
+.month:not([open])>summary .count::after{content:" ▸"}
+.day{display:grid;grid-template-columns:86px minmax(0,1fr);gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+.day-date{font-family:var(--f-mono);font-size:13px;color:var(--muted);line-height:1.35}
+.day-date b{display:block;font-size:20px;color:var(--ink);font-weight:500}
+.items{display:grid;gap:12px;min-width:0}
+.item{display:grid;gap:6px;min-width:0}
+.item .head{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px}
+.tag{font-size:11px;padding:1px 7px;border-radius:3px;background:var(--accent-soft);color:var(--accent);font-weight:600}
+.tag.news{background:var(--news-soft);color:var(--news)}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.tag.pl{background:transparent;border:1px solid var(--line);color:var(--muted);font-weight:500}
+.tag.unc{background:transparent;color:var(--muted);border:1px dashed var(--line)}
+.time{font-family:var(--f-mono);color:var(--muted)}
+.body{white-space:pre-line;overflow-wrap:anywhere;margin:0}
+.item.x .body{font-size:14.5px;color:var(--ink)}
+.sum{font-weight:600;font-size:15px}
+.quote{border-left:3px solid var(--line);padding-left:10px;color:var(--muted);font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}
+.foot{display:flex;gap:12px;flex-wrap:wrap;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.ctx{font-size:13px;color:var(--muted)}
+.ctx strong{color:var(--warn);font-weight:600}
+.src{font-size:12px;display:flex;gap:8px;flex-wrap:wrap}
+.item.ms{background:var(--ok-soft);padding:8px 10px}
+.item.ms .tag{background:var(--ok);color:var(--surface)}
+.more-btn{font:inherit;font-size:13px;background:none;border:1px solid var(--line);color:var(--ink);padding:8px 14px;cursor:pointer;justify-self:center}
+.empty{color:var(--muted);padding:24px 0;text-align:center}
+.pl-card{border-top:1px solid var(--line);padding:16px 0;display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px}
+.pl-rank{font-family:var(--f-display);font-size:28px;font-weight:800;color:var(--seal);line-height:1}
+.pl-card h3{font-size:18px}
+.status{font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;display:inline-block}
+.st-완료{background:var(--ok-soft);color:var(--ok)} .st-진행{background:var(--accent-soft);color:var(--accent)}
+.st-부분{background:var(--warn-soft);color:var(--warn)} .st-지연,.st-미착수,.st-무산{background:var(--news-soft);color:var(--seal)} .st-미확인{border:1px dashed var(--line);color:var(--muted)}
+.pl-card ul{margin:6px 0 0;padding-left:18px;font-size:14px}
+.pl-card details{font-size:14px}
+.pl-card summary{cursor:pointer;color:var(--accent);font-size:13px}
+.kv{display:grid;grid-template-columns:minmax(0,180px) minmax(0,1fr);gap:6px 14px;font-size:14px}
+.kv dt{color:var(--muted)} .kv dd{margin:0}
+.tasks{display:grid;gap:18px}
+.task-group h3{font-size:17px;margin-bottom:6px}
+.task-group ol{margin:0;padding-left:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:4px 18px;font-size:14px}
+.task-group li{display:grid;grid-template-columns:34px minmax(0,1fr);gap:6px}
+.strat{margin:10px 0 0;padding-left:10px;border-left:3px solid var(--line)}
+.strat h4{margin:0 0 4px;font-size:14px;font-family:var(--f-body);color:var(--accent)}
+.task-group li span{font-family:var(--f-mono);color:var(--muted);font-size:12px;padding-top:2px}
+table.ev{width:100%;border-collapse:collapse;font-size:13px}
+table.ev td,table.ev th{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+.tblwrap{overflow-x:auto}
+@media (max-width:560px){.day{grid-template-columns:1fr;gap:6px}.day-date b{display:inline;margin-right:6px}.pl-card{grid-template-columns:1fr}.kv{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+header.top{position:relative}
+.visits{position:absolute;top:0;right:0;display:flex;align-items:baseline;gap:8px;padding:6px 12px;border:1px solid var(--line);background:var(--surface);font-family:var(--f-mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.visits b{color:var(--ink);font-weight:500;font-size:15px}
+.visits .sep{color:var(--line)}
+@media (min-width:641px){header.top h1{max-width:calc(100% - 230px)}}
+@media (max-width:640px){.visits{position:static;justify-self:start;margin-top:6px}}
+
+/* 10대 공약 매트릭스 (5×2) — 세부항목 가중 지수 그라데이션 */
+.pm-wrap{display:grid;gap:10px;margin-bottom:8px}
+.pm{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.pm button{font:inherit;text-align:left;border:1px solid var(--line);border-radius:4px;padding:10px 10px 8px;cursor:pointer;display:grid;gap:4px;align-content:start;min-height:112px;min-width:0;color:var(--ink);transition:transform .12s}
+.pm button:hover{transform:translateY(-2px);border-color:var(--ink)}
+.pm button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pm .n{font-family:var(--f-display);font-weight:800;font-size:20px;line-height:1}
+.pm .t{font-size:12.5px;font-weight:600;line-height:1.35;overflow-wrap:anywhere}
+.pm .v{font-family:var(--f-mono);font-size:20px;font-weight:500;font-variant-numeric:tabular-nums;margin-top:auto}
+.pm .c{font-size:11px;opacity:.85}
+.pm button.dark{color:var(--surface)}
+.pm button.na{background:repeating-linear-gradient(45deg,var(--surface) 0 6px,var(--bg) 6px 12px)}
+.pm-leg{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.pm-leg .bar{position:relative;width:180px;height:10px;border:1px solid var(--line);background:linear-gradient(to right,rgb(214,140,0),rgb(247,221,110) 49%,rgb(205,232,178) 51%,rgb(24,110,66))}
+.pm-leg .bar::after{content:"50";position:absolute;left:50%;top:11px;transform:translateX(-50%);font-size:10px;font-family:var(--f-mono)}
+.pm-leg{padding-bottom:10px}
+#pm-back{position:fixed;right:max(16px,env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);z-index:20;display:grid;justify-items:center;gap:2px;width:56px;padding:10px 4px;border:1px solid var(--ink);background:var(--surface);color:var(--ink);font:inherit;font-size:11px;font-weight:600;line-height:1.25;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.18);border-radius:6px}
+#pm-back b{font-size:18px;line-height:1}
+#pm-back:hover{background:var(--ink);color:var(--bg)}
+#pm-back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:720px){#pm-back{top:auto;bottom:max(20px,env(safe-area-inset-bottom,0px));transform:none}}
+@media (max-width:520px){.pm{grid-template-columns:repeat(2,minmax(0,1fr))}.pm button{min-height:92px}}
+.pl-card{scroll-margin-top:64px}
+.pl-card.flash{animation:plflash 1.6s ease-out}
+@keyframes plflash{from{background:var(--ok-soft)}to{background:transparent}}
+.pi{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.pi>div{border:1px solid var(--line);padding:8px 10px;min-width:0}
+.pi h4{margin:0 0 4px;font-size:13px;font-family:var(--f-body)}
+.pi h4.ok{color:var(--ok)} .pi h4.bad{color:var(--warn)} .pi h4.na{color:var(--muted)}
+.pi ul{margin:0;padding-left:16px;font-size:13.5px}
+.pi li small{color:var(--muted)}
+.pl-x{font-size:13.5px}
+.pl-x ul{margin:6px 0;padding-left:0;list-style:none;display:grid;gap:4px}
+.pl-x li{display:grid;grid-template-columns:78px minmax(0,1fr);gap:8px}
+.pl-x .time{font-size:12px}
+.pl-x .go{font:inherit;font-size:12px;border:1px solid var(--line);background:none;color:var(--accent);padding:3px 10px;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.pl-card.flash{animation:none}.pm button{transition:none}}
+
+#tl-top{position:fixed;left:50%;bottom:max(22px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:6px;padding:8px 16px;border:2px solid var(--ink);border-radius:999px;background:var(--surface);color:var(--ink);font:inherit;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+#p-timeline{scroll-margin-top:56px}
+#tl-top b{font-size:16px;line-height:1}
+#tl-top:hover{background:var(--ink);color:var(--bg)}
+#tl-top:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:720px){#tl-top{width:44px;height:44px;padding:0;justify-content:center}#tl-top span{display:none}}
+
+/* 스파인 타임라인: 왼쪽 X 게시 · 가운데 날짜 축 · 오른쪽 공약 이행 */
+.sp-head{display:grid;grid-template-columns:minmax(0,1fr) 76px minmax(0,1fr);font-size:12px;letter-spacing:.1em;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:8px}
+.sp-head span:first-child{text-align:right;padding-right:18px;color:var(--accent)} .sp-head span:last-child{padding-left:18px;color:var(--ok)}
+.spine{position:relative;display:grid}
+.spine::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;background:var(--line)}
+.m-mark{position:relative;display:flex;justify-content:center;padding:22px 0 6px}
+.m-mark span{background:var(--ink);color:var(--bg);font-family:var(--f-display);font-weight:800;font-size:15px;padding:3px 14px;border-radius:999px}
+.node{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 76px minmax(0,1fr);padding:14px 0}
+.axis{position:relative;display:grid;justify-items:center;align-content:start;gap:4px;padding-top:10px}
+.axis .dot{width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid var(--ink)}
+.axis time{font-family:var(--f-mono);font-size:13px;line-height:1.2;text-align:center;background:var(--bg);padding:2px 0;font-variant-numeric:tabular-nums}
+.axis time b{display:block;font-size:18px;font-weight:500}
+.axis time small{color:var(--muted);font-size:11px}
+.side{display:grid;gap:10px;align-content:start;min-width:0}
+.side.l{padding-right:18px} .side.r{padding-left:18px}
+.card{position:relative;background:var(--surface);border:1px solid var(--line);padding:10px 12px;display:grid;gap:6px;min-width:0}
+.side.l .card.x{border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+.side.l>.grp:first-child .card::after,.side.r>:first-child.card::after{content:"";position:absolute;top:15px;width:56px;border-top:1px solid var(--muted)}
+.side.l>.grp:first-child .card::after{right:-57px} .side.r>:first-child.card::after{left:-57px}
+.card .sum{font-weight:600;font-size:15px;line-height:1.45}
+.card details>summary{cursor:pointer;color:var(--accent);font-size:12px;list-style:none}
+.card details>summary::-webkit-details-marker{display:none}
+.card details>summary::before{content:"▸ "} .card details[open]>summary::before{content:"▾ "}
+.card details .body{margin-top:6px;font-size:14px}
+.card.ms{background:var(--ok-soft);border-color:transparent}
+.card.ms .tag{background:var(--ok);color:var(--surface)}
+.card.nw{border-style:dashed}
+.grp{display:grid;gap:6px;min-width:0}
+.react{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:13px}
+.react li{position:relative;min-width:0;color:var(--muted);line-height:1.5}
+.side.l .react li{padding-left:22px} .side.r .react li{padding-left:22px}
+.react li::before{content:"";position:absolute;left:8px;top:-8px;width:10px;height:17px;border-left:1px solid var(--muted);border-bottom:1px solid var(--muted)}
+.react .rk{font-size:11px;font-weight:600;color:var(--news);margin-right:4px}
+.react b{color:var(--ink);font-weight:600}
+.react .src{display:inline-flex;margin-left:4px}
+.pl-sum{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--muted)}
+.pl-sum button{font:inherit;font-size:12px;border:1px solid var(--line);background:none;color:var(--ink);border-radius:3px;padding:1px 7px;cursor:pointer}
+.pl-sum button:hover{border-color:var(--ok);color:var(--ok)}
+.sentinel{display:grid;justify-items:center;padding:18px 0;color:var(--muted);font-size:13px}
+@media (max-width:720px){
+  .sp-head{display:none}
+  .spine::before{left:22px}
+  .node{grid-template-columns:44px minmax(0,1fr);row-gap:10px}
+  .axis{grid-column:1;grid-row:1/span 2;padding-top:4px}
+  .axis time{font-size:11px} .axis time b{font-size:15px}
+  .side.l,.side.r{grid-column:2;padding:0}
+  .side:not(:empty)::before{content:attr(data-label);font-size:11px;letter-spacing:.1em;font-weight:600}
+  .side.l::before{color:var(--accent)} .side.r::before{color:var(--ok)}
+  .side.l>.grp:first-child .card::after,.side.r>:first-child.card::after{display:none}
+  .m-mark{justify-content:flex-start}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="visits" id="visits" hidden aria-label="방문자 수"><span>방문자</span><span>오늘 <b id="v-today">-</b></span><span class="sep">|</span><span>누적 <b id="v-total">-</b></span></div>
+    <div class="eyebrow">제21대 대통령 · 2025.6.4 취임</div>
+    <h1>이재명 대통령 공약·SNS 기록부</h1>
+    <p class="lede">개인 X 계정(@Jaemyung_Lee) 게시물 요약과 언론이 보도한 맥락·논란, 공약 이행 이정표를 하나의 타임라인에 최신순으로 쌓습니다.</p>
+    <div class="meta-line" id="updated">데이터 불러오는 중…</div>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <section class="panel" aria-labelledby="chart-h">
+    <div class="panel-head">
+      <h2 id="chart-h">월별 X 게시 수</h2>
+      <div class="legend"><span><i style="background:var(--accent)"></i>수집 원문</span><span><i style="border:1.5px solid var(--seal);border-radius:50%"></i>언론 집계</span><span><i style="width:16px;height:0;border-top:2px dashed var(--seal);vertical-align:3px"></i>월평균</span></div>
+    </div>
+    <div class="chart" id="chart"></div>
+    <p class="note" id="chart-note"></p>
+  </section>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="t-timeline" aria-selected="true" data-tab="timeline">타임라인</button>
+    <button role="tab" id="t-pledges" aria-selected="false" data-tab="pledges">10대 공약 트래커</button>
+    <button role="tab" id="t-tasks" aria-selected="false" data-tab="tasks">123대 국정과제</button>
+    <button role="tab" id="t-about" aria-selected="false" data-tab="about">출처·방법</button>
+  </nav>
+
+  <section id="p-timeline" class="filters" role="tabpanel" aria-labelledby="t-timeline">
+    <div class="row" id="kind-chips"></div>
+    <div class="row" id="field-chips"></div>
+    <div class="row">
+      <select id="pledge-sel" aria-label="관련 공약"><option value="">관련 공약 전체</option></select>
+      <input type="search" id="q" placeholder="본문·맥락 검색 (예: 부동산, 관세, 검찰)" aria-label="검색">
+    </div>
+    <div class="count" id="tl-count"></div>
+    <div id="timeline"></div>
+  </section>
+
+  <section id="p-pledges" role="tabpanel" aria-labelledby="t-pledges" hidden>
+    <p class="note" id="pl-note"></p>
+    <div id="pledges"></div>
+  </section>
+
+  <section id="p-tasks" role="tabpanel" aria-labelledby="t-tasks" hidden>
+    <div class="tasks" id="tasks"></div>
+  </section>
+
+  <section id="p-about" role="tabpanel" aria-labelledby="t-about" hidden>
+    <div id="about"></div>
+  </section>
+</div>
+
+<script>
+const PL_SHORT={1:"경제강국·AI",2:"민주주의·검찰사법",3:"민생·공정경제",4:"외교안보",5:"생명안전·의료",6:"균형발전",7:"노동",8:"생활안정·복지",9:"저출생·돌봄",10:"기후에너지"};
+const FIELDS=["경제","부동산","외교","안보","민생","재난","사법개혁","정치","인사","기념일·추모","기타"];
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const st={kind:"all",field:"",pledge:"",q:"",shown:6};
+let D={posts:[],events:[],pl:null,periods:[],meta:{}};
+let ITEMS=[];
+
+async function j(u,f){try{const r=await fetch(u,{cache:"no-cache"});if(!r.ok)throw 0;return await r.json()}catch(e){return f}}
+async function boot(){
+  const [posts,events,pl,periods,meta]=await Promise.all([j("data/posts.json",[]),j("data/events.json",[]),j("data/pledges.json",null),j("data/periods.json",[]),j("data/meta.json",{})]);
+  D={posts,events,pl,periods,meta};
+  ITEMS=[
+    ...posts.map(p=>({k:"x",date:p.date,time:p.time,field:p.field,pledge:p.pledge||[],txt:(p.text+" "+(p.quote||"")+" "+(p.summary||"")).toLowerCase(),d:p})),
+    ...events.map(e=>({k:"news",date:e.date,time:"",field:e.field,pledge:e.pledge||[],txt:(e.title+" "+e.summary+" "+e.quote+" "+e.context).toLowerCase(),d:e})),
+    ...((pl&&pl.milestones)||[]).filter(m=>/^\d{4}-\d{2}-\d{2}$/.test(m.date)).map(m=>({k:"ms",date:m.date,time:"",field:"",pledge:m.pledge||[],txt:(m.title+" "+m.detail).toLowerCase(),d:m}))
+  ];
+  linkEvents(); renderHead(); renderChart(); bindChart(); renderFilters(); renderTimeline(); renderPledges(); pmBack(); renderTasks(); renderAbout();
+}
+function renderHead(){
+  const m=D.meta, n=D.posts.length;
+  document.getElementById("updated").textContent=`최종 갱신 ${m.updated||"-"} · 수집 범위 ${m.range||"-"}`;
+  const last30=D.posts.filter(p=>p.date>=m.since30).length;
+  const contro=D.events.filter(e=>e.controversy).length;
+  const S=[[n.toLocaleString(),"수집한 X 게시물"],[last30,"최근 30일 게시"],[D.events.length,"언론 맥락 기록"],[contro,"논란 보도 연계"]];
+  document.getElementById("stats").innerHTML=S.map(([b,s])=>`<div class="stat"><b>${b}</b><span>${s}</span></div>`).join("");
+}
+function renderChart(){
+  const c={}; D.posts.forEach(p=>{const k=p.date.slice(0,7);c[k]=(c[k]||0)+1});
+  const press={}; D.periods.forEach(p=>Object.assign(press,p.monthly_counts||{}));
+  const months=[]; let d=new Date(Date.UTC(2025,5,1)); const end=(D.meta.updated||"2026-10").slice(0,7);
+  while(true){const k=d.toISOString().slice(0,7); months.push(k); if(k>=end)break; d.setUTCMonth(d.getUTCMonth()+1)}
+  months.reverse(); // 최신 월이 가장 왼쪽
+  const full=months.slice(1); // 진행 중인 이번 달은 평균에서 제외
+  const avg=full.length?full.reduce((s,k)=>s+(c[k]||0),0)/full.length:0;
+  const max=Math.max(10,...months.map(k=>Math.max(c[k]||0,press[k]||0)));
+  const top=Math.ceil(max/40)*40, W=760,H=220,L=34,R=8,T=12,B=30, bw=(W-L-R)/months.length;
+  const y=v=>T+(H-T-B)*(1-v/top);
+  let g="",hits=""; for(let v=0;v<=top;v+=top/4){g+=`<line class="grid" x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L-6}" y="${y(v)+3}" text-anchor="end">${v}</text>`}
+  months.forEach((k,i)=>{const v=c[k]||0,x=L+i*bw;
+    g+=`<rect class="bar" data-bm="${k}" x="${x+bw*.18}" y="${y(v)}" width="${bw*.64}" height="${y(0)-y(v)}"></rect>`;
+    hits+=`<rect class="hit" data-m="${k}" tabindex="0" role="button" aria-label="${k} 원문 ${v}건, 타임라인 해당 월로 이동" x="${x}" y="${T}" width="${bw}" height="${H-T-B+14}"><title>${k}: 원문 ${v}건${press[k]?` / 언론 집계 ${press[k]}건`:""} · 클릭하면 해당 월로 이동</title></rect>`;
+    if(press[k])g+=`<circle class="press" cx="${x+bw/2}" cy="${y(press[k])}" r="4"><title>${k} 언론 집계 ${press[k]}건</title></circle>`;
+    const [yy,mm]=k.split("-"); g+=`<text x="${x+bw/2}" y="${H-12}" text-anchor="middle">${+mm}</text>`; if(i===0||months[i-1].slice(0,4)!==yy)g+=`<text x="${x+bw/2}" y="${H-1}" text-anchor="middle">${yy}</text>`;
+  });
+  if(avg){const ya=y(avg); g+=`<line class="avg" x1="${L}" x2="${W-R}" y1="${ya}" y2="${ya}"><title>월평균 ${avg.toFixed(1)}건 (완료된 ${full.length}개월 기준)</title></line><text class="avg-t" x="${W-R-2}" y="${ya-4}" text-anchor="end">평균 ${avg.toFixed(1)}</text>`}
+  document.getElementById("chart").innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="group" aria-label="월별 게시 수 막대그래프 — 막대를 누르면 해당 월로 이동">${g}${hits}</svg>`;
+  document.getElementById("chart-note").textContent=(D.meta.chart_note||"")+(avg?` 왼쪽이 최신 월이며, 막대를 누르면 타임라인의 해당 월로 이동합니다. 붉은 점선은 진행 중인 이번 달을 뺀 ${full.length}개월의 수집 원문 월평균(${avg.toFixed(1)}건)입니다.`:"");
+}
+function chips(el,list,key){
+  el.innerHTML=list.map(([v,l])=>`<button class="chip" aria-pressed="${st[key]===v}" data-v="${esc(v)}">${esc(l)}</button>`).join("");
+  el.onclick=e=>{const b=e.target.closest(".chip");if(!b)return;st[key]=b.dataset.v;st.shown=6;el.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===b));renderTimeline()};
+}
+function renderFilters(){
+  chips(document.getElementById("kind-chips"),[["all","전체"],["x","X 게시물"],["news","언론 맥락"],["contro","논란 보도"],["ms","공약 이정표"]],"kind");
+  const used=FIELDS.filter(f=>ITEMS.some(i=>i.field===f));
+  chips(document.getElementById("field-chips"),[["","모든 분야"],...used.map(f=>[f,f])],"field");
+  const sel=document.getElementById("pledge-sel");
+  sel.innerHTML+=Object.entries(PL_SHORT).map(([n,l])=>`<option value="${n}">${n}. ${l}</option>`).join("");
+  sel.onchange=()=>{st.pledge=sel.value;st.shown=6;renderTimeline()};
+  let t; document.getElementById("q").oninput=e=>{clearTimeout(t);t=setTimeout(()=>{st.q=e.target.value.trim().toLowerCase();st.shown=6;renderTimeline()},200)};
+}
+function pass(i){
+  if(st.kind==="contro"){if(!(i.k==="news"&&i.d.controversy))return false}
+  else if(st.kind!=="all"&&i.k!==st.kind)return false;
+  if(st.field&&i.field!==st.field)return false;
+  if(st.pledge&&!i.pledge.includes(+st.pledge))return false;
+  if(st.q&&!st.q.split(/\s+/).every(w=>i.txt.includes(w)))return false;
+  return true;
+}
+const plTags=a=>(a||[]).map(n=>`<span class="tag pl">공약${n} ${PL_SHORT[n]||""}</span>`).join("");
+const srcs=a=>(a||[]).map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a>`).join("");
+function itemHTML(i){
+  const d=i.d;
+  if(i.k==="x"){
+    const kind=d.replyTo?`<span class="tag unc">답글 ${esc(d.replyTo)}</span>`:(d.quote?`<span class="tag unc">인용</span>`:"");
+    return `<article class="item x"><div class="head"><span class="tag">X</span><span class="time">${esc(d.time)}</span>${d.field?`<span class="tag pl">${esc(d.field)}</span>`:""}${d.tone?`<span class="tag unc">${esc(d.tone)}</span>`:""}${kind}${plTags(d.pledge)}</div>
+      ${d.summary?`<div class="sum">${esc(d.summary)}</div>`:""}
+      <p class="body${d.text.length>260?" clamp":""}">${esc(d.text.replace(/\n{2,}/g,"\n"))}${d.truncated?" …":""}</p>${d.text.length>260?`<button class="expand" onclick="this.previousElementSibling.classList.toggle('clamp');this.textContent=this.textContent==='전문 펼치기'?'접기':'전문 펼치기'">전문 펼치기</button>`:""}
+      ${d.quote?`<div class="quote">${d.quoteAuthor?`<b>${esc(d.quoteAuthor.split(" ")[0])}</b>\n`:""}${esc(d.quote)}</div>`:""}
+      <div class="foot">${d.views?`<span>조회 ${d.views}</span>`:""}${d.likes?`<span>좋아요 ${d.likes}</span>`:""}${d.reposts?`<span>재게시 ${d.reposts}</span>`:""}${d.replies?`<span>답글 ${d.replies}</span>`:""}<a href="https://x.com/Jaemyung_Lee/status/${esc(d.id)}" target="_blank" rel="noopener">원문 보기</a></div></article>`;
+  }
+  if(i.k==="news"){
+    return `<article class="item"><div class="head"><span class="tag news">언론·${esc(d.platform)}</span>${d.controversy?`<span class="tag warn">논란</span>`:""}${d.uncertain?`<span class="tag unc">불확실</span>`:""}<span class="tag pl">${esc(d.field)}</span>${plTags(d.pledge)}</div>
+      <p class="body"><b>${esc(d.title)}</b> — ${esc(d.summary)}</p>${d.quote?`<div class="quote">${esc(d.quote)}</div>`:""}
+      ${d.context?`<div class="ctx">${d.controversy?"<strong>맥락·논란</strong> ":"<strong style='color:var(--muted)'>맥락</strong> "}${esc(d.context)}</div>`:""}
+      <div class="src">${srcs(d.sources)}</div></article>`;
+  }
+  return `<article class="item ms"><div class="head"><span class="tag">공약 이정표</span>${plTags(d.pledge)}</div><p class="body"><b>${esc(d.title)}</b>${d.detail?` — ${esc(d.detail)}`:""}</p><div class="src">${srcs(d.sources)}</div></article>`;
+}
+function linkEvents(){
+  const byDate={}; D.posts.forEach(p=>(byDate[p.date]=byDate[p.date]||[]).push(p));
+  const bg=t=>{t=String(t||"").replace(/[\s"'“”‘’.,!?·…()\[\]<>〈〉「」『』\-—:;/]+/g,"");const o=new Set();for(let i=0;i<t.length-1;i++)o.add(t.slice(i,i+2));return o};
+  const PB={}; D.posts.forEach(p=>PB[p.id]=bg(p.text+" "+(p.quote||"")+" "+(p.summary||"")));
+  D.events.forEach(e=>{e._post=null; if(!/^(X|SNS|페이스북)$/.test(e.platform))return;
+    const a=bg(e.title+" "+e.summary+" "+e.quote); let best=0,bp=null;
+    (byDate[e.date]||[]).forEach(p=>{const b=PB[p.id];let k=0;a.forEach(x=>{if(b.has(x))k++});const sc=k/Math.max(1,a.size);if(sc>best){best=sc;bp=p}});
+    if(bp&&best>=LINK_T)e._post=bp.id;});
+}
+const LINK_T=0.18;
+const TL={days:[],n:0,obs:null,PAGE:20};
+const WD="일월화수목금토";
+function xCard(d,reacts){
+  const kind=d.replyTo?`<span class="tag unc">답글 ${esc(d.replyTo)}</span>`:(d.quote?`<span class="tag unc">인용</span>`:"");
+  const body=esc(d.text.replace(/\n{2,}/g,"\n"))+(d.truncated?" …":"");
+  return `<div class="grp"><article class="card x"><div class="head"><span class="tag">X</span><span class="time">${esc(d.time)}</span>${d.field?`<span class="tag pl">${esc(d.field)}</span>`:""}${d.tone?`<span class="tag unc">${esc(d.tone)}</span>`:""}${kind}${plTags(d.pledge)}</div>
+    <div class="sum">${esc(d.summary||d.text.slice(0,60))}</div>
+    <details><summary>발췌 보기</summary><p class="body">${body}</p>${d.quote?`<div class="quote">${d.quoteAuthor?`<b>${esc(d.quoteAuthor.split(" ")[0])}</b>\n`:""}${esc(d.quote)}</div>`:""}</details>
+    <div class="foot">${d.views?`<span>조회 ${d.views}</span>`:""}${d.likes?`<span>좋아요 ${d.likes}</span>`:""}${d.replies?`<span>답글 ${d.replies}</span>`:""}<a href="https://x.com/Jaemyung_Lee/status/${esc(d.id)}" target="_blank" rel="noopener">X에서 열기</a></div></article>
+    ${reacts.length?`<ul class="react">${reacts.map(reactLi).join("")}</ul>`:""}</div>`;
+}
+function reactLi(e){
+  return `<li><span class="rk">언론 반응</span>${e.controversy?`<span class="tag warn">논란</span> `:""}${e.uncertain?`<span class="tag unc">불확실</span> `:""}<b>${esc(e.title)}</b> ${esc(e.context||e.summary)}<span class="src">${srcs(e.sources)}</span></li>`;
+}
+function newsCard(e){
+  return `<article class="card nw"><div class="head"><span class="tag news">언론·${esc(e.platform)}</span>${e.controversy?`<span class="tag warn">논란</span>`:""}${e.uncertain?`<span class="tag unc">불확실</span>`:""}<span class="tag pl">${esc(e.field)}</span>${plTags(e.pledge)}</div>
+    <div class="sum">${esc(e.title)}</div><p class="body" style="font-size:14px">${esc(e.summary)}</p>${e.quote?`<div class="quote">${esc(e.quote)}</div>`:""}
+    ${e.context?`<ul class="react"><li><span class="rk">${e.controversy?"맥락·논란":"맥락"}</span>${esc(e.context)}</li></ul>`:""}<div class="src">${srcs(e.sources)}</div></article>`;
+}
+function msCard(m){
+  return `<article class="card ms"><div class="head"><span class="tag">공약 이행</span>${m._month?`<span class="time">${esc(m.date)} 중</span>`:""}${plTags(m.pledge)}</div><div class="sum">${esc(m.title)}</div>${m.detail?`<p class="body" style="font-size:14px">${esc(m.detail)}</p>`:""}${(m.sources||[]).length?`<ul class="react"><li><span class="rk">언론 보도</span><span class="src">${srcs(m.sources)}</span></li></ul>`:""}</article>`;
+}
+function dayHTML(date,g){
+  const xs=g.x.map(i=>i.d).sort((a,b)=>b.time.localeCompare(a.time));
+  const shownIds=new Set(xs.map(p=>p.id));
+  const news=g.news.map(i=>i.d);
+  const attached=id=>news.filter(e=>e._post===id);
+  const SNS=/^(X|SNS|페이스북)$/;
+  const orphanL=news.filter(e=>(e._post&&!shownIds.has(e._post))||(!e._post&&SNS.test(e.platform)));
+  const right=news.filter(e=>!e._post&&!SNS.test(e.platform));
+  const pc={}; xs.forEach(p=>(p.pledge||[]).forEach(n=>pc[n]=(pc[n]||0)+1));
+  const pcs=Object.entries(pc).sort((a,b)=>b[1]-a[1]);
+  const L=xs.map(p=>xCard(p,attached(p.id))).join("")+orphanL.map(e=>`<div class="grp">${newsCard(e)}</div>`).join("");
+  const R=g.ms.map(i=>msCard(i.d)).join("")+right.map(newsCard).join("")+
+    (pcs.length?`<div class="pl-sum"><span>이날 X 글의 연관 공약</span>${pcs.map(([n,c])=>`<button type="button" data-pl="${n}" title="이 공약으로 거르기">${n}. ${esc(PL_SHORT[n])}${c>1?` ×${c}`:""}</button>`).join("")}</div>`:"");
+  const dd=new Date(date+"T00:00:00Z");
+  return `<div class="node"><div class="side l" data-label="X 게시">${L}</div><div class="axis"><span class="dot"></span><time datetime="${date}"><b>${+date.slice(5,7)}.${+date.slice(8)}</b><small>${WD[dd.getUTCDay()]}</small></time></div><div class="side r" data-label="공약 이행">${R}</div></div>`;
+}
+function loadMore(){
+  const sp=document.getElementById("spine"); if(!sp)return;
+  const chunk=TL.days.slice(TL.n,TL.n+TL.PAGE); let h="";
+  chunk.forEach(([date,g],k)=>{const m=date.slice(0,7); const prev=TL.n+k>0?TL.days[TL.n+k-1][0].slice(0,7):null;
+    if(m!==prev){const [y,mo]=m.split("-");h+=`<div class="m-mark" data-m="${m}"><span>${y}년 ${+mo}월</span></div>`}
+    h+=dayHTML(date,g)});
+  sp.insertAdjacentHTML("beforeend",h); TL.n+=chunk.length;
+  const left=TL.days.length-TL.n, s=document.getElementById("tl-sentinel");
+  s.innerHTML=left>0?`<button class="more-btn" id="more" type="button">이전 기록 더 불러오기 (${left}일 남음)</button>`:(TL.days.length?`<span>처음 기록(2025년 6월)까지 모두 불러왔습니다.</span>`:"");
+  const mb=document.getElementById("more"); if(mb)mb.onclick=loadMore;
+}
+function renderTimeline(){
+  const list=ITEMS.filter(pass);
+  document.getElementById("tl-count").textContent=`${list.length.toLocaleString()}건 (X ${list.filter(i=>i.k==="x").length} · 언론 ${list.filter(i=>i.k==="news").length} · 이정표 ${list.filter(i=>i.k==="ms").length}) · 아래로 스크롤하면 이전 기록을 이어서 불러옵니다`;
+  const days=new Map();
+  list.forEach(i=>{if(!days.has(i.date))days.set(i.date,{x:[],news:[],ms:[]});days.get(i.date)[i.k].push(i)});
+  TL.days=[...days.entries()].sort((a,b)=>b[0].localeCompare(a[0])); TL.n=0;
+  const tl=document.getElementById("timeline");
+  tl.innerHTML=list.length?`<div class="sp-head"><span>X 게시 · 언론 반응</span><span></span><span>공약 이행 · 언론 반응</span></div><div class="spine" id="spine"></div><div class="sentinel" id="tl-sentinel"></div>`
+    :`<p class="empty">조건에 맞는 기록이 없습니다. 필터를 줄이거나 검색어를 바꿔 보세요.</p>`;
+  if(!list.length)return;
+  loadMore();
+  if(TL.obs)TL.obs.disconnect();
+  if("IntersectionObserver" in window){TL.obs=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)&&TL.n<TL.days.length&&!document.getElementById("p-timeline").hidden)loadMore()},{rootMargin:"800px 0px"});TL.obs.observe(document.getElementById("tl-sentinel"))}
+  document.getElementById("spine").onclick=e=>{const b=e.target.closest("[data-pl]");if(!b)return;const sel=document.getElementById("pledge-sel");sel.value=b.dataset.pl;st.pledge=b.dataset.pl;renderTimeline();document.getElementById("p-timeline").scrollIntoView({behavior:"smooth"})};
+}
+const PL_SCORE={"완료":100,"시행":100,"법 통과":75,"통과":75,"진행":50,"지연":25,"무산":0,"미확인":null};
+function plItems(note){
+  const main=String(note||"").replace(/\s*\(10대 공약 단위[^)]*\)\s*$/,"");
+  return main.split(/\s+\/\s+/).map(s=>{const m=s.match(/^(.+?)\s*→\s*(완료|시행|법 통과|통과|진행|지연|무산|미확인)\s*(.*)$/);
+    if(!m)return null; let ex=m[3].trim().replace(/^[.,]\s*/,""); if(/^\(.*\)$/.test(ex))ex=ex.slice(1,-1);
+    return {name:m[1].trim(),st:m[2],ex,sc:PL_SCORE[m[2]]}}).filter(Boolean);
+}
+function plColor(s){
+  const S=[[0,[214,140,0]],[49,[247,221,110]],[50,[205,232,178]],[100,[24,110,66]]];
+  let a=S[0],b=S[1]; for(let i=0;i<S.length-1;i++){if(s>=S[i][0]&&s<=S[i+1][0]){a=S[i];b=S[i+1];break}}
+  const t=(s-a[0])/((b[0]-a[0])||1), c=a[1].map((v,i)=>Math.round(v+(b[1][i]-v)*t));
+  const L=(0.2126*c[0]+0.7152*c[1]+0.0722*c[2])/255;
+  return {bg:`rgb(${c.join(",")})`,fg:L>0.5?"#18212e":"#ffffff"};
+}
+function pmBack(){
+  let b=document.getElementById("pm-back");
+  if(!b){b=document.createElement("button");b.id="pm-back";b.type="button";b.hidden=true;b.setAttribute("aria-label","10대 공약 매트릭스로 돌아가기");b.innerHTML="<b>↑</b>공약<br>매트릭스";document.body.appendChild(b);
+    b.onclick=()=>{const w=document.querySelector(".pm-wrap");if(!w)return;w.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"start"});const c=document.querySelector(`.pm [data-go="${window._plLast||1}"]`);if(c)setTimeout(()=>c.focus({preventScroll:true}),400)};}
+  const w=document.querySelector(".pm-wrap"); if(!w||!("IntersectionObserver" in window))return;
+  if(window._pmObs)window._pmObs.disconnect();
+  window._pmObs=new IntersectionObserver(es=>{const e=es[0];b.hidden=e.isIntersecting||e.boundingClientRect.top>0||document.getElementById("p-pledges").hidden});
+  window._pmObs.observe(w);
+}
+function plScore(items){const v=items.filter(i=>i.sc!==null);return v.length?Math.round(v.reduce((a,i)=>a+i.sc,0)/v.length):null}
+function goPledge(n){
+  const c=document.getElementById("pl-"+n); if(!c)return; window._plLast=n;
+  c.querySelectorAll("details[data-open]").forEach(d=>d.open=true);
+  c.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"start"});
+  c.classList.remove("flash"); void c.offsetWidth; c.classList.add("flash");
+}
+function plToTimeline(n){
+  const sel=document.getElementById("pledge-sel"); sel.value=String(n); st.pledge=String(n); st.kind="x"; st.shown=6;
+  document.querySelectorAll("#kind-chips .chip").forEach(x=>x.setAttribute("aria-pressed",x.dataset.v==="x"));
+  document.querySelector('nav.tabs [data-tab="timeline"]').click(); renderTimeline();
+  document.getElementById("p-timeline").scrollIntoView({behavior:"smooth"});
+}
+function renderPledges(){
+  const pl=D.pl; if(!pl)return;
+  const cnt={},nc={}; D.posts.forEach(p=>(p.pledge||[]).forEach(n=>cnt[n]=(cnt[n]||0)+1)); D.events.forEach(e=>(e.pledge||[]).forEach(n=>nc[n]=(nc[n]||0)+1));
+  document.getElementById("pl-note").textContent="상태는 대표 세부공약의 이행 근거를 종합한 참고 판정입니다. 공식 종합 판정이 아니며, 근거가 없으면 '미확인'으로 둡니다.";
+  const IT={}; pl.top10.forEach(p=>{IT[p.rank]=plItems(p.status_note)});
+  const matrix=`<div class="pm-wrap"><div class="panel-head"><h2>10대 공약 이행 지수</h2><div class="pm-leg"><span>0</span><span class="bar"></span><span>100</span></div></div>
+    <div class="pm">${pl.top10.map(p=>{const it=IT[p.rank],s=plScore(it),k=it.filter(i=>i.sc!==null).length,col=s===null?null:plColor(s);
+      const bg=col?`background:${col.bg};color:${col.fg};border-color:transparent`:"";
+      return `<button type="button" data-go="${p.rank}" class="${s===null?"na":""}" style="${bg}" aria-label="공약 ${p.rank} ${esc(PL_SHORT[p.rank])} 이행 지수 ${s===null?"없음":s}, 세부 내역으로 이동">
+        <span class="n">${p.rank}</span><span class="t">${esc(PL_SHORT[p.rank]||p.area)}</span><span class="v">${s===null?"—":s}</span><span class="c">확인 ${k}/${it.length}항목 · X ${cnt[p.rank]||0}건</span></button>`}).join("")}</div>
+    <p class="note">이행 지수는 이 기록부의 <b>자체 산정 참고값</b>입니다. 공약마다 대표 세부공약(2~4개)의 상태를 완료·시행 100 · 법 통과 75 · 진행 50 · 지연 25 · 무산 0으로 바꿔 평균했고, '미확인' 항목은 계산에서 뺐습니다. 공식 이행률이 아니며 세부공약 전체를 반영하지 않습니다. 셀을 누르면 세부 내역으로 이동합니다.</p></div>`;
+  const li=i=>`<li>${esc(i.name)} <span class="status st-${esc(i.st==="시행"||i.st==="법 통과"||i.st==="통과"?"완료":i.st)}">${esc(i.st)}</span>${i.ex?` <small>${esc(i.ex)}</small>`:""}</li>`;
+  document.getElementById("pledges").innerHTML=matrix+pl.top10.map(p=>{
+    const ms=(pl.milestones||[]).filter(m=>(m.pledge||[]).includes(p.rank)).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+    const it=IT[p.rank], ok=it.filter(i=>i.sc!==null&&i.sc>=75), bad=it.filter(i=>i.sc!==null&&i.sc<75), na=it.filter(i=>i.sc===null);
+    const xs=D.posts.filter(x=>(x.pledge||[]).includes(p.rank)).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)).slice(0,6);
+    return `<div class="pl-card" id="pl-${p.rank}"><div class="pl-rank">${p.rank}</div><div style="min-width:0;display:grid;gap:6px">
+      <div class="row"><span class="status st-${esc(p.status)}">${esc(p.status)}</span><span class="tag pl">${esc(p.area)}</span><span class="count">이행 지수 ${plScore(it)??"—"} · 관련 X 원문 ${cnt[p.rank]||0} · 언론 맥락 ${nc[p.rank]||0}</span></div>
+      <h3>${esc(p.title)}</h3><div class="note">목표: ${esc(p.goal)}</div>
+      ${it.length?`<div class="pi">${ok.length?`<div><h4 class="ok">달성 항목 ${ok.length}</h4><ul>${ok.map(li).join("")}</ul></div>`:""}${bad.length?`<div><h4 class="bad">미진 항목 ${bad.length}</h4><ul>${bad.map(li).join("")}</ul></div>`:""}${na.length?`<div><h4 class="na">근거 미확인 ${na.length}</h4><ul>${na.map(li).join("")}</ul></div>`:""}</div>`:`<div class="ctx">${esc(p.status_note)}</div>`}
+      ${xs.length?`<details class="pl-x" data-open><summary>관련 X 게시 ${cnt[p.rank]} (최근 ${xs.length}건)</summary><ul>${xs.map(x=>`<li><span class="time">${esc(x.date.slice(2).replace(/-/g,"."))}</span><span>${esc(x.summary||String(x.text||"").slice(0,60))} <a href="https://x.com/Jaemyung_Lee/status/${esc(x.id)}" target="_blank" rel="noopener">X</a></span></li>`).join("")}</ul><button type="button" class="go" data-tl="${p.rank}">타임라인에서 관련 X 글 모두 보기 →</button></details>`:""}
+      <details><summary>주요 이행방법 ${p.methods.length}개</summary><ul>${p.methods.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>
+      ${ms.length?`<details open data-open><summary>이행 이정표 ${ms.length}건</summary><ul>${ms.map(m=>`<li><span class="time">${esc(m.date)}</span> ${esc(m.title)} ${srcs(m.sources)}</li>`).join("")}</ul></details>`:""}
+      ${p.period||p.funding?`<details><summary>이행기간·재원조달 (원문)</summary><dl class="kv" style="margin-top:6px">${p.period?`<dt>이행기간</dt><dd>${esc(p.period)}</dd>`:""}${p.funding?`<dt>재원조달</dt><dd>${esc(p.funding)}</dd>`:""}</dl></details>`:""}
+      ${p.related_tasks?.length?`<div class="note">대응 국정과제(비공식): ${p.related_tasks.join(", ")}</div>`:""}
+      <div class="src">${srcs(p.sources)}</div></div></div>`}).join("")
+    + (pl.manifesto?`<h2 style="margin-top:24px">선거공약서(유권자 배포본) 약속</h2><p class="note">${esc(pl.manifesto.slogan||"")} · 선관위 10대 공약과 순서·구성이 다르며, 공약서에만 있는 약속도 포함됩니다.</p>${(pl.manifesto.pledges||pl.manifesto.pages||pl.manifesto.items||pl.manifesto.list||(Array.isArray(pl.manifesto)?pl.manifesto:[])).map(m=>`<details class="pl-card" style="display:block"><summary><b>${esc(m.rank??"")}. ${esc(m.headline||"")}</b></summary><ul>${(m.promises||[]).map(x=>`<li>${esc(typeof x==="string"?x:JSON.stringify(x))}</li>`).join("")}</ul></details>`).join("")}`:"")
+    + `<h2 style="margin-top:24px">이행 평가 보도</h2><div class="tblwrap"><table class="ev"><thead><tr><th>시점</th><th>기관</th><th>내용</th></tr></thead><tbody>${[...(pl.evaluations||[])].sort((a,b)=>String(b.date||"").localeCompare(String(a.date||""))).map(e=>`<tr><td class="time">${esc(e.date||"-")}</td><td>${esc(e.org)}</td><td>${esc(e.finding)} <span class="src">${srcs(e.sources)}</span></td></tr>`).join("")}</tbody></table></div>`;
+}
+document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){goPledge(+g.dataset.go);return}const t=e.target.closest("[data-tl]");if(t)plToTimeline(+t.dataset.tl)});
+
+function bindChart(){
+  const c=document.getElementById("chart");
+  const bar=m=>c.querySelector(`.bar[data-bm="${m}"]`);
+  c.addEventListener("mouseover",e=>{const h=e.target.closest(".hit");c.querySelectorAll(".bar.on").forEach(b=>b.classList.remove("on"));if(h)bar(h.dataset.m)?.classList.add("on")});
+  c.addEventListener("mouseleave",()=>c.querySelectorAll(".bar.on").forEach(b=>b.classList.remove("on")));
+  c.addEventListener("click",e=>{const h=e.target.closest(".hit");if(h)goMonth(h.dataset.m)});
+  c.addEventListener("keydown",e=>{const h=e.target.closest(".hit");if(h&&(e.key==="Enter"||e.key===" ")){e.preventDefault();goMonth(h.dataset.m)}});
+}
+function resetFilters(){
+  st.kind="all";st.field="";st.pledge="";st.q="";
+  document.querySelectorAll("#kind-chips .chip").forEach(x=>x.setAttribute("aria-pressed",x.dataset.v==="all"));
+  document.querySelectorAll("#field-chips .chip").forEach(x=>x.setAttribute("aria-pressed",x.dataset.v===""));
+  document.getElementById("pledge-sel").value="";document.getElementById("q").value="";
+}
+function flashTo(el){if(!el)return;el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"start"});el.classList.remove("flash");void el.offsetWidth;el.classList.add("flash")}
+function goMonth(m){
+  document.querySelector('nav.tabs [data-tab="timeline"]').click();
+  if(!ITEMS.some(i=>pass(i)&&i.date.startsWith(m))){resetFilters();renderTimeline()}
+  if(!TL.days.some(d=>d[0].startsWith(m)))return;
+  while(TL.n<TL.days.length&&!TL.days.slice(0,TL.n).some(d=>d[0].startsWith(m)))loadMore();
+  if(TL.n<TL.days.length)loadMore();
+  requestAnimationFrame(()=>flashTo(document.querySelector(`.m-mark[data-m="${m}"]`)));
+}
+function renderTasks(){
+  const pl=D.pl; if(!pl)return; const g={};
+  pl.tasks.forEach(t=>{(g[t.goal_group]=g[t.goal_group]||{name:t.goal_name,list:[]}).list.push(t)});
+  document.getElementById("tasks").innerHTML=`<p class="note">비전 「국민이 주인인 나라, 함께 행복한 대한민국」 · 5대 국정목표 · 23대 추진전략 · 123대 과제 (2025.9.16 국무회의 확정)</p>`+
+    (pl.focus12?.length?`<div class="task-group"><h3>12대 중점 전략과제</h3><ol>${pl.focus12.map((f,i)=>`<li><span>${i+1}</span>${esc(f)}</li>`).join("")}</ol></div>`:"")+
+    Object.entries(g).map(([k,v])=>{const ss=(pl.strategies||[]).filter(s=>s.goal===+k);
+      const li=l=>`<ol>${l.map(t=>`<li><span>${t.no}</span>${esc(t.title)}</li>`).join("")}</ol>`;
+      return `<div class="task-group"><h3>국정목표 ${k}. ${esc(v.name)} <span class="count">${v.list.length}개 과제${ss.length?` · 추진전략 ${ss.length}개`:""}</span></h3>${ss.length?ss.map(s=>{const l=v.list.filter(t=>t.strategy===s.no);return `<div class="strat"><h4>전략 ${s.no}. ${esc(s.name)} <span class="count">${l.length}개</span></h4>${li(l)}</div>`}).join("")+(v.list.some(t=>!t.strategy)?`<div class="strat"><h4>전략 미확인</h4>${li(v.list.filter(t=>!t.strategy))}</div>`:""):li(v.list)}</div>`}).join("")
+    +(pl.strategy_meta?`<p class="note">추진전략 매핑 확인일 ${esc(pl.strategy_meta.checked)} · ${esc(pl.strategy_meta.method)} <span class="src">${srcs((pl.strategies[0]||{}).sources)}</span></p>`:"");
+}
+function renderAbout(){
+  const pl=D.pl, m=D.meta;
+  document.getElementById("about").innerHTML=`<div style="display:grid;gap:18px">
+   <div><h2>수집 방법</h2><p class="lede">${esc(m.method||"")}</p></div>
+   ${pl?`<div><h2>공약 기본 정보</h2><dl class="kv">${pl.meta.map(r=>`<dt>${esc(r.label)}</dt><dd>${esc(r.value)} <span class="src">${srcs(r.sources)}</span></dd>`).join("")}</dl></div>`:""}
+   <div><h2>기간별 운영 특징 (언론 분석)</h2>${[...D.periods].sort((a,b)=>String(b.period||"").localeCompare(String(a.period||""))).map(p=>`<p><b>${esc(p.period)}</b> — ${esc(p.summary)} <span class="src">${srcs(p.sources)}</span></p>`).join("")}</div>
+   ${pl?.unverified?.length?`<div><h2>확인하지 못한 항목</h2><ul>${pl.unverified.map(u=>`<li>${esc(typeof u==="string"?u:JSON.stringify(u))}</li>`).join("")}</ul></div>`:""}
+  </div>`;
+}
+document.querySelector("nav.tabs").onclick=e=>{const b=e.target.closest("button");if(!b)return;
+  document.querySelectorAll("nav.tabs button").forEach(x=>x.setAttribute("aria-selected",x===b));
+  ["timeline","pledges","tasks","about"].forEach(t=>document.getElementById("p-"+t).hidden=t!==b.dataset.tab);
+  try{localStorage.setItem("tab",b.dataset.tab)}catch(e){} const pb=document.getElementById("pm-back"); if(pb&&b.dataset.tab!=="pledges")pb.hidden=true;};
+(function(){
+  const b=document.createElement("button");b.id="tl-top";b.type="button";b.hidden=true;b.setAttribute("aria-label","타임라인 맨 위로");b.innerHTML="<b>↑</b><span>맨 위로</span>";document.body.appendChild(b);
+  const panel=()=>document.getElementById("p-timeline");
+  const upd=()=>{const p=panel(),t=document.getElementById("timeline");b.hidden=!p||p.hidden||!t||t.getBoundingClientRect().top>-300};
+  let q=false; addEventListener("scroll",()=>{if(q)return;q=true;requestAnimationFrame(()=>{q=false;upd()})},{passive:true});
+  document.querySelector("nav.tabs").addEventListener("click",()=>setTimeout(upd,0));
+  b.onclick=()=>{panel().scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"start"});b.blur()};
+})();
+boot().then(()=>{let t=location.hash.slice(1);try{t=t||localStorage.getItem("tab")}catch(e){} if(t)document.querySelector(`nav.tabs [data-tab="${t}"]`)?.click()});
+</script>
+<script>
+(async()=>{
+  const NS='archidextura-ppt', API='https://abacus.jasoncameron.dev';
+  const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul'}).format(new Date()).replace(/-/g,'');
+  let seen=false; try{seen=localStorage.getItem('pp-visit-day')===day}catch(e){}
+  const call=async(op,key)=>{try{const r=await fetch(`${API}/${op}/${NS}/${key}`,{cache:'no-store'});if(!r.ok)return 0;return (await r.json()).value||0}catch(e){return null}};
+  const op=seen?'get':'hit';
+  const [today,total]=await Promise.all([call(op,'d'+day),call(op,'total')]);
+  if(today===null||total===null)return;
+  if(!seen){try{localStorage.setItem('pp-visit-day',day)}catch(e){}}
+  document.getElementById('v-today').textContent=today.toLocaleString('ko-KR');
+  document.getElementById('v-total').textContent=total.toLocaleString('ko-KR');
+  document.getElementById('visits').hidden=false;
+})();
+</script>
+</body>
+</html>
